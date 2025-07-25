@@ -1,0 +1,158 @@
+{% raw %}
+def _process_set_other_stage_input(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("STAGE1", ctypes.c_uint32, 16),
+            ("STAGE2", ctypes.c_uint32, 4),
+            ("STAGE3", ctypes.c_uint32, 4),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            return "{Stage1: %d, Stage2: %d, Stage3: %d}" % (
+                self.STAGE1,
+                self.STAGE2,
+                self.STAGE3,
+            )
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def process_shader_stage_program(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("STAGE_0", ctypes.c_uint32, 5),
+            ("STAGE_1", ctypes.c_uint32, 5),
+            ("STAGE_2", ctypes.c_uint32, 5),
+            ("STAGE_3", ctypes.c_uint32, 5),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            stage_0_mode = [
+                "NONE",
+                "2D_PROJECTIVE",
+                "3D_PROJECTIVE",
+                "CUBE_MAP",
+                "PASS_THROUGH",
+                "CLIP_PLANE",
+            ]
+            elements.append(f"0:{stage_0_mode[self.STAGE_0]}")
+
+            stage_1_mode = [
+                "NONE",
+                "2D_PROJECTIVE",
+                "3D_PROJECTIVE",
+                "CUBE_MAP",
+                "PASS_THROUGH",
+                "CLIP_PLANE",
+                "BUMPENVMAP",
+                "BUMPENVMAP_LUMINANCE",
+                "?0x08",
+                "?0x09",
+                "?0x0A",
+                "?0x0B",
+                "?0x0C",
+                "?0x0D",
+                "?0x0E",
+                "DEPENDENT_AR",
+                "DEPENDENT_GB",
+                "DOT_PRODUCT",
+            ]
+            elements.append(f"1:{stage_1_mode[self.STAGE_1]}")
+
+            stage_2_mode = [
+                "NONE",
+                "2D_PROJECTIVE",
+                "3D_PROJECTIVE",
+                "CUBE_MAP",
+                "PASS_THROUGH",
+                "CLIP_PLANE",
+                "BUMPENVMAP",
+                "BUMPENVMAP_LUMINANCE",
+                "BRDF",
+                "DOT_ST",
+                "DOT_ZW",
+                "DOT_REFLECT_DIFFUSE",
+                "?0x0C",
+                "?0x0D",
+                "?0x0E",
+                "DEPENDENT_AR",
+                "DEPENDENT_GB",
+                "DOT_PRODUCT",
+            ]
+            elements.append(f"2:{stage_2_mode[self.STAGE_2]}")
+
+            stage_3_mode = [
+                "NONE",
+                "2D_PROJECTIVE",
+                "3D_PROJECTIVE",
+                "CUBE_MAP",
+                "PASS_THROUGH",
+                "CLIP_PLANE",
+                "BUMPENVMAP",
+                "BUMPENVMAP_LUMINANCE",
+                "BRDF",
+                "DOT_ST",
+                "DOT_ZW",
+                "?0x0B",
+                "DOT_REFLECT_SPECULAR",
+                "DOT_STR_3D",
+                "DOT_STR_CUBE",
+                "DEPENDENT_AR",
+                "DEPENDENT_GB",
+                "?0x11" "DOT_REFLECT_SPECULAR_CONST",
+            ]
+            elements.append(f"3:{stage_3_mode[self.STAGE_3]}")
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_color_mask(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("BLUE_WRITE", ctypes.c_uint32, 8),
+            ("GREEN_WRITE", ctypes.c_uint32, 8),
+            ("RED_WRITE", ctypes.c_uint32, 8),
+            ("ALPHA_WRITE", ctypes.c_uint32, 8),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append("Red:%s" % ("W" if self.RED_WRITE else "RO"))
+            elements.append("Green:%s" % ("W" if self.GREEN_WRITE else "RO"))
+            elements.append("Blue:%s" % ("W" if self.BLUE_WRITE else "RO"))
+            elements.append("Alpha:%s" % ("W" if self.ALPHA_WRITE else "RO"))
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+{% endraw %}

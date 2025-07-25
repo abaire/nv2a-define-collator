@@ -1,0 +1,110 @@
+{% raw %}
+def _process_set_control0(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("STENCIL_WRITE_ENABLE", ctypes.c_uint32, 8),
+            ("_RESERVED0", ctypes.c_uint32, 4),
+            ("Z_FORMAT", ctypes.c_uint32, 4),
+            ("Z_PERSPECTIVE_ENABLE", ctypes.c_uint32, 4),
+            ("TEXTURE_PERSPECTIVE_ENABLE", ctypes.c_uint32, 4),
+            ("PREMULTIPLIED_ALPHA", ctypes.c_uint32, 4),
+            ("COLOR_SPACE_CONVERT", ctypes.c_uint32, 4),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append(f"StencilWrite:{self.STENCIL_WRITE_ENABLE}")
+            fmt = "float" if self.Z_FORMAT else "fixed"
+            elements.append(f"ZFormat:{fmt}")
+
+            elements.append(f"ZPerspective:{self.Z_PERSPECTIVE_ENABLE}")
+            elements.append(f"TexPerspective:{self.TEXTURE_PERSPECTIVE_ENABLE}")
+            elements.append(f"PremultAlpha:{self.PREMULTIPLIED_ALPHA}")
+
+            if self.COLOR_SPACE_CONVERT == 1:
+                elements.append("Convert:CRYCB=>RGB")
+            elif self.COLOR_SPACE_CONVERT == 2:
+                elements.append("Convert:SCRYSCB=>RGB")
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_vertex_data_array_format(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("TYPE", ctypes.c_uint32, 4),
+            ("SIZE", ctypes.c_uint32, 4),
+            ("STRIDE", ctypes.c_uint32, 24),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            if not self.SIZE:
+                elements.append("Disabled")
+            else:
+                types = [
+                    "UB D3D",
+                    "ShortNormalize",
+                    "Float",
+                    "?3",
+                    "UB OpenGL",
+                    "Short",
+                    "3ComponentPacked",
+                ]
+                if len(types) <= self.TYPE:
+                    msg = f"Invalid vertex data array format, unknown type {self.TYPE}. 0x{_nv_op:x}(0x{nv_param:x})"
+                    raise IndexError(msg)
+                elements.append("Type:%s" % types[self.TYPE])
+
+                sizes = ["Disabled", "1", "2", "3", "4", "?5", "?6", "3W"]
+
+                elements.append("Size:%s" % sizes[self.SIZE])
+                elements.append("Stride:%d (0x%X)" % (self.STRIDE, self.STRIDE))
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_draw_arrays(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("START_INDEX", ctypes.c_uint32, 24),
+            ("COUNT", ctypes.c_uint32, 8),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            return "{Start:%d, Count:%d}" % (self.START_INDEX, self.COUNT)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+{% endraw %}

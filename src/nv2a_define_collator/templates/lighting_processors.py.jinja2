@@ -1,0 +1,122 @@
+{% raw %}
+
+# See https://github.com/fgsfdsfgs/pbgl/blob/13fa676239f7de5a4189dd15a86979989adfe3fd/src/state.c#L315
+def _process_set_light_control(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("SEPARATE_SPECULAR", ctypes.c_uint32, 2),
+            ("RESERVED", ctypes.c_uint32, 14),
+            ("LOCALEYE", ctypes.c_uint32, 1),
+            ("SOUT", ctypes.c_uint32, 15),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            if self.SEPARATE_SPECULAR:
+                elements.append("SeparateSpecular")
+
+            if self.LOCALEYE:
+                elements.append("LocalEye")
+
+            if self.SOUT == 0:
+                elements.append("SOut:ZeroOut")
+            elif self.SOUT == 1:
+                elements.append("SOut:Passthrough")
+            else:
+                elements.append("SOut:%d" % self.SOUT)
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+def _process_set_color_material(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("EMISSIVE", ctypes.c_uint32, 2),
+            ("AMBIENT", ctypes.c_uint32, 2),
+            ("DIFFUSE", ctypes.c_uint32, 2),
+            ("SPECULAR", ctypes.c_uint32, 2),
+            ("BACK_EMISSIVE", ctypes.c_uint32, 2),
+            ("BACK_AMBIENT", ctypes.c_uint32, 2),
+            ("BACK_DIFFUSE", ctypes.c_uint32, 2),
+            ("BACK_SPECULAR", ctypes.c_uint32, 2),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            sources = [
+                "Material",
+                "VertexDiffuse",
+                "VertexSpecular",
+            ]
+
+            for component in [field[0] for field in self._fields_]:
+                source = getattr(self, f"{component}")
+                if source >= len(sources):
+                    msg = f"Failed to parse source {source} for component {component} of set_color_material param 0x{nv_param:x}"
+                    raise ValueError(msg)
+                elements.append(f"{component}:{sources[source]}")
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_set_light_enable_mask(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("LIGHT0", ctypes.c_uint32, 2),
+            ("LIGHT1", ctypes.c_uint32, 2),
+            ("LIGHT2", ctypes.c_uint32, 2),
+            ("LIGHT3", ctypes.c_uint32, 2),
+            ("LIGHT4", ctypes.c_uint32, 2),
+            ("LIGHT5", ctypes.c_uint32, 2),
+            ("LIGHT6", ctypes.c_uint32, 2),
+            ("LIGHT7", ctypes.c_uint32, 2),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            light_mode = ["OFF", "INFINITE", "LOCAL", "SPOT"]
+
+            elements.append("Light0:%s" % light_mode[self.LIGHT0])
+            elements.append("Light1:%s" % light_mode[self.LIGHT1])
+            elements.append("Light2:%s" % light_mode[self.LIGHT2])
+            elements.append("Light3:%s" % light_mode[self.LIGHT3])
+            elements.append("Light4:%s" % light_mode[self.LIGHT4])
+            elements.append("Light5:%s" % light_mode[self.LIGHT5])
+            elements.append("Light6:%s" % light_mode[self.LIGHT6])
+            elements.append("Light7:%s" % light_mode[self.LIGHT7])
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+{% endraw %}

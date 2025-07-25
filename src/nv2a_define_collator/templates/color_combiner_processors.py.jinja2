@@ -1,0 +1,348 @@
+{% raw %}
+
+_ICW_MAP_VALUES = [
+    "UNSIGNED_IDENTITY",
+    "UNSIGNED_INVERT",
+    "EXPAND_NORMAL",
+    "EXPAND_NEGATE",
+    "HALFBIAS_NORMAL",
+    "HALFBIAS_NEGATE",
+    "SIGNED_IDENTITY",
+    "SIGNED_NEGATE",
+]
+
+# From _dx_psrgbinputs_and_psalphainputs_graphics.htm
+# also _dx_psrgboutputs_and_psalphaoutputs_graphics.htm
+_ICW_SRC_VALUES = [
+    "Zero",  # 0
+    "C0",  # 1
+    "C1",  # 2
+    "Fog",  # 3
+    "V0_Diffuse",  # 4
+    "V1_Specular",  # 5
+    "?6",
+    "?7",
+    "Tex0",  # 8
+    "Tex1",  # 9
+    "Tex2",  # 10
+    "Tex3",  # 11
+    "R0Temp",  # 12
+    "R1Temp",  # 13
+    "V1_R0_Sum",  # 14
+    "EF_Prod",  # 15
+]
+
+# From _dx_psrgboutputs_and_psalphaoutputs_graphics.htm
+_OCW_DST_VALUES = list(_ICW_SRC_VALUES)
+_OCW_DST_VALUES[0] = "Discard"
+
+
+def _process_combiner_control(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("COUNT", ctypes.c_uint32, 8),
+            ("MUX_SELECT", ctypes.c_uint32, 4),
+            ("FACTOR_0", ctypes.c_uint32, 4),
+            ("FACTOR_1", ctypes.c_uint32, 16),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append(f"Count:{self.COUNT}")
+            if self.MUX_SELECT:
+                elements.append("Mux:MSB")
+            else:
+                elements.append("Mux:LSB")
+
+            if self.FACTOR_0:
+                elements.append("Factor0:EACH_STAGE")
+            else:
+                elements.append("Factor0:SAME_FOR_ALL")
+
+            if self.FACTOR_1:
+                elements.append("Factor1:EACH_STAGE")
+            else:
+                elements.append("Factor1:SAME_FOR_ALL")
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_combiner_specular_fog_cw0(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("D_SOURCE", ctypes.c_uint32, 4),
+            ("D_ALPHA", ctypes.c_uint32, 1),
+            ("D_INVERSE", ctypes.c_uint32, 3),
+            ("C_SOURCE", ctypes.c_uint32, 4),
+            ("C_ALPHA", ctypes.c_uint32, 1),
+            ("C_INVERSE", ctypes.c_uint32, 3),
+            ("B_SOURCE", ctypes.c_uint32, 4),
+            ("B_ALPHA", ctypes.c_uint32, 1),
+            ("B_INVERSE", ctypes.c_uint32, 3),
+            ("A_SOURCE", ctypes.c_uint32, 4),
+            ("A_ALPHA", ctypes.c_uint32, 1),
+            ("A_INVERSE", ctypes.c_uint32, 3),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            for component in ["A", "B", "C", "D"]:
+                src = _ICW_SRC_VALUES[getattr(self, f"{component}_SOURCE")]
+
+                alpha = getattr(self, f"{component}_ALPHA")
+                inverse = getattr(self, f"{component}_INVERSE")
+                elements.append(
+                    f"[{component}: %s%s%s]" % (src, " Alpha" if alpha else "", " Invert" if inverse else "")
+                )
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_combiner_specular_fog_cw1(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("SPECULAR_ADD_INVERT_R12", ctypes.c_uint32, 6),
+            ("SPECULAR_ADD_INVERT_R5", ctypes.c_uint32, 1),
+            ("SPECULAR_CLAMP", ctypes.c_uint32, 1),
+            ("G_SOURCE", ctypes.c_uint32, 4),
+            ("G_ALPHA", ctypes.c_uint32, 1),
+            ("G_INVERSE", ctypes.c_uint32, 3),
+            ("F_SOURCE", ctypes.c_uint32, 4),
+            ("F_ALPHA", ctypes.c_uint32, 1),
+            ("F_INVERSE", ctypes.c_uint32, 3),
+            ("E_SOURCE", ctypes.c_uint32, 4),
+            ("E_ALPHA", ctypes.c_uint32, 1),
+            ("E_INVERSE", ctypes.c_uint32, 3),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            for component in ["E", "F", "G"]:
+                src = _ICW_SRC_VALUES[getattr(self, f"{component}_SOURCE")]
+                alpha = getattr(self, f"{component}_ALPHA")
+                inverse = getattr(self, f"{component}_INVERSE")
+                elements.append(
+                    f"[{component}: %s%s%s]" % (src, " Alpha" if alpha else "", " Invert" if inverse else "")
+                )
+
+            if self.SPECULAR_CLAMP:
+                elements.append("SpecularClamp")
+
+            if self.SPECULAR_ADD_INVERT_R5:
+                elements.append("SpecularAddInvertR5")
+
+            if self.SPECULAR_ADD_INVERT_R12 == 0x20:
+                elements.append("SpecularAddInvertR12")
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_combiner_icw(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("D_SOURCE", ctypes.c_uint32, 4),
+            ("D_ALPHA", ctypes.c_uint32, 1),
+            ("D_MAP", ctypes.c_uint32, 3),
+            ("C_SOURCE", ctypes.c_uint32, 4),
+            ("C_ALPHA", ctypes.c_uint32, 1),
+            ("C_MAP", ctypes.c_uint32, 3),
+            ("B_SOURCE", ctypes.c_uint32, 4),
+            ("B_ALPHA", ctypes.c_uint32, 1),
+            ("B_MAP", ctypes.c_uint32, 3),
+            ("A_SOURCE", ctypes.c_uint32, 4),
+            ("A_ALPHA", ctypes.c_uint32, 1),
+            ("A_MAP", ctypes.c_uint32, 3),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            for component in ["A", "B", "C", "D"]:
+                src = _ICW_SRC_VALUES[getattr(self, f"{component}_SOURCE")]
+                alpha = getattr(self, f"{component}_ALPHA")
+                map_type = getattr(self, f"{component}_MAP")
+                elements.append(
+                    f"[{component}: %s %s Map:%s]" % (src, "Alpha" if alpha else "", _ICW_MAP_VALUES[map_type])
+                )
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+
+def _process_combiner_alpha_ocw(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("CD_DST_REG", ctypes.c_uint32, 4),
+            ("AB_DST_REG", ctypes.c_uint32, 4),
+            ("SUM_DST_REG", ctypes.c_uint32, 4),
+            ("CD_DOT", ctypes.c_uint32, 1),
+            ("AB_DOT", ctypes.c_uint32, 1),
+            ("MUX", ctypes.c_uint32, 1),
+            ("OP", ctypes.c_uint32, 3),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append("AB_Reg:%s" % _OCW_DST_VALUES[self.AB_DST_REG])
+            elements.append("CD_Reg:%s" % _OCW_DST_VALUES[self.CD_DST_REG])
+            elements.append("MuxSum_Reg:%s" % _OCW_DST_VALUES[self.SUM_DST_REG])
+            elements.append("AB_DOT:%s" % ("true" if self.AB_DOT else "false"))
+            elements.append("CD_DOT:%s" % ("true" if self.CD_DOT else "false"))
+            elements.append("MUX:%s" % ("true" if self.MUX else "false"))
+
+            op = "!!BAD!!"
+            if self.OP == 0:
+                op = "NoShift"
+            elif self.OP == 1:
+                op = "NoShift_Bias"
+            elif self.OP == 2:
+                op = "ShiftLeft1"
+            elif self.OP == 3:
+                op = "ShiftLeft1_Bias"
+            elif self.OP == 4:
+                op = "ShiftLeft2"
+            elif self.OP == 6:
+                op = "ShiftRight1"
+            elements.append("OP:%s" % op)
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_combiner_color_ocw(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("CD_DST_REG", ctypes.c_uint32, 4),
+            ("AB_DST_REG", ctypes.c_uint32, 4),
+            ("SUM_DST_REG", ctypes.c_uint32, 4),
+            ("CD_DOT", ctypes.c_uint32, 1),
+            ("AB_DOT", ctypes.c_uint32, 1),
+            ("MUX", ctypes.c_uint32, 1),
+            ("OP", ctypes.c_uint32, 3),
+            ("CD_BLUE_TO_ALPHA", ctypes.c_uint32, 1),
+            ("AB_BLUE_TO_ALPHA", ctypes.c_uint32, 13),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append("AB_Reg:%s" % _OCW_DST_VALUES[self.AB_DST_REG])
+            elements.append("CD_Reg:%s" % _OCW_DST_VALUES[self.CD_DST_REG])
+            elements.append("AB+CD_Reg:%s" % _OCW_DST_VALUES[self.SUM_DST_REG])
+            elements.append("AB_DOT:%s" % ("true" if self.AB_DOT else "false"))
+            elements.append("CD_DOT:%s" % ("true" if self.CD_DOT else "false"))
+            elements.append("MUX:%s" % ("true" if self.MUX else "false"))
+
+            op = "!!BAD!!"
+            if self.OP == 0:
+                op = "NoShift"
+            elif self.OP == 1:
+                op = "NoShift_Bias"
+            elif self.OP == 2:
+                op = "ShiftLeft1"
+            elif self.OP == 3:
+                op = "ShiftLeft1_Bias"
+            elif self.OP == 4:
+                op = "ShiftLeft2"
+            elif self.OP == 6:
+                op = "ShiftRight1"
+            elements.append("OP:%s" % op)
+
+            elements.append("AB_BlueToAlpha:%s" % ("true" if self.AB_BLUE_TO_ALPHA else "false"))
+            elements.append("CD_BlueToAlpha:%s" % ("true" if self.CD_BLUE_TO_ALPHA else "false"))
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_combiner_color_factor(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("BLUE", ctypes.c_uint32, 8),
+            ("GREEN", ctypes.c_uint32, 8),
+            ("RED", ctypes.c_uint32, 8),
+            ("ALPHA", ctypes.c_uint32, 8),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append("BLUE:%02X %f" % (self.BLUE, self.BLUE / 255.0))
+            elements.append("GREEN:%02X %f" % (self.GREEN, self.GREEN / 255.0))
+            elements.append("RED:%02X %f" % (self.RED, self.RED / 255.0))
+            elements.append("ALPHA:%02X %f" % (self.ALPHA, self.ALPHA / 255.0))
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+{% endraw %}

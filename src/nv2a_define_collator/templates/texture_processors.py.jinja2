@@ -1,0 +1,527 @@
+{% raw %}
+
+def _process_set_texture_format(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class TextureFormat(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("CONTEXT_DMA", ctypes.c_uint32, 2),
+            ("CUBEMAP_ENABLE", ctypes.c_uint32, 1),
+            ("BORDER_SOURCE", ctypes.c_uint32, 1),
+            ("DIMENSIONALITY", ctypes.c_uint32, 4),
+            ("COLOR", ctypes.c_uint32, 8),
+            ("MIPMAP_LEVELS", ctypes.c_uint32, 4),
+            ("BASE_SIZE_U", ctypes.c_uint32, 4),
+            ("BASE_SIZE_V", ctypes.c_uint32, 4),
+            ("BASE_SIZE_P", ctypes.c_uint32, 4),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+            if self.CONTEXT_DMA == 1:
+                elements.append("DMA_A")
+            if self.CONTEXT_DMA == 2:
+                elements.append("DMA_B")
+
+            if self.CUBEMAP_ENABLE:
+                elements.append("ENABLE_CUBEMAP")
+
+            if self.BORDER_SOURCE:
+                elements.append("BORDER_SOURCE_COLOR")
+            else:
+                elements.append("BORDER_SOURCE_TEXTURE")
+
+            if self.COLOR == 0:
+                elements.append("SZ_Y8")
+            elif self.COLOR == 0x00000001:
+                elements.append("SZ_AY8")
+            elif self.COLOR == 0x00000002:
+                elements.append("SZ_A1R5G5B5")
+            elif self.COLOR == 0x00000003:
+                elements.append("SZ_X1R5G5B5")
+            elif self.COLOR == 0x00000004:
+                elements.append("SZ_A4R4G4B4")
+            elif self.COLOR == 0x00000005:
+                elements.append("SZ_R5G6B5")
+            elif self.COLOR == 0x00000006:
+                elements.append("SZ_A8R8G8B8")
+            elif self.COLOR == 0x00000007:
+                elements.append("SZ_X8R8G8B8")
+            elif self.COLOR == 0x0000000B:
+                elements.append("SZ_I8_A8R8G8B8")
+            elif self.COLOR == 0x0000000C:
+                elements.append("L_DXT1_A1R5G5B5")
+            elif self.COLOR == 0x0000000E:
+                elements.append("L_DXT23_A8R8G8B8")
+            elif self.COLOR == 0x0000000F:
+                elements.append("L_DXT45_A8R8G8B8")
+            elif self.COLOR == 0x00000010:
+                elements.append("LU_IMAGE_A1R5G5B5")
+            elif self.COLOR == 0x00000011:
+                elements.append("LU_IMAGE_R5G6B5")
+            elif self.COLOR == 0x00000012:
+                elements.append("LU_IMAGE_A8R8G8B8")
+            elif self.COLOR == 0x00000013:
+                elements.append("LU_IMAGE_Y8")
+            elif self.COLOR == 0x00000014:
+                elements.append("LU_IMAGE_SY8")
+            elif self.COLOR == 0x00000015:
+                elements.append("LU_IMAGE_X7SY9")
+            elif self.COLOR == 0x00000016:
+                elements.append("LU_IMAGE_R8B8")
+            elif self.COLOR == 0x00000017:
+                elements.append("LU_IMAGE_G8B8")
+            elif self.COLOR == 0x00000018:
+                elements.append("LU_IMAGE_SG8SB8")
+            elif self.COLOR == 0x0000019:
+                elements.append("SZ_A8")
+            elif self.COLOR == 0x0000001A:
+                elements.append("SZ_A8Y8")
+            elif self.COLOR == 0x0000001B:
+                elements.append("LU_IMAGE_AY8")
+            elif self.COLOR == 0x0000001C:
+                elements.append("LU_IMAGE_X1R5G5B5")
+            elif self.COLOR == 0x0000001D:
+                elements.append("LU_IMAGE_A4R4G4B4")
+            elif self.COLOR == 0x0000001E:
+                elements.append("LU_IMAGE_X8R8G8B8")
+            elif self.COLOR == 0x0000001F:
+                elements.append("LU_IMAGE_A8")
+            elif self.COLOR == 0x00000020:
+                elements.append("LU_IMAGE_A8Y8")
+            elif self.COLOR == 0x00000024:
+                elements.append("LC_IMAGE_CR8YB8CB8YA8")
+            elif self.COLOR == 0x00000025:
+                elements.append("LC_IMAGE_YB8CR8YA8CB8")
+            elif self.COLOR == 0x00000026:
+                elements.append("LU_IMAGE_A8CR8CB8Y8")
+            elif self.COLOR == 0x00000027:
+                elements.append("SZ_R6G5B5")
+            elif self.COLOR == 0x00000028:
+                elements.append("SZ_G8B8")
+            elif self.COLOR == 0x00000029:
+                elements.append("SZ_R8B8")
+            elif self.COLOR == 0x0000002A:
+                elements.append("SZ_DEPTH_X8_Y24_FIXED")
+            elif self.COLOR == 0x0000002B:
+                elements.append("SZ_DEPTH_X8_Y24_FLOAT")
+            elif self.COLOR == 0x0000002C:
+                elements.append("SZ_DEPTH_Y16_FIXED")
+            elif self.COLOR == 0x0000002D:
+                elements.append("SZ_DEPTH_Y16_FLOAT")
+            elif self.COLOR == 0x0000002E:
+                elements.append("LU_IMAGE_DEPTH_X8_Y24_FIXED")
+            elif self.COLOR == 0x0000002F:
+                elements.append("LU_IMAGE_DEPTH_X8_Y24_FLOAT")
+            elif self.COLOR == 0x00000030:
+                elements.append("LU_IMAGE_DEPTH_Y16_FIXED")
+            elif self.COLOR == 0x00000031:
+                elements.append("LU_IMAGE_DEPTH_Y16_FLOAT")
+            elif self.COLOR == 0x00000032:
+                elements.append("SZ_Y16")
+            elif self.COLOR == 0x00000033:
+                elements.append("SZ_YB_16_YA_16")
+            elif self.COLOR == 0x00000034:
+                elements.append("LC_IMAGE_A4V6YB6A4U6YA6")
+            elif self.COLOR == 0x00000035:
+                elements.append("LU_IMAGE_Y16")
+            elif self.COLOR == 0x00000036:
+                elements.append("LU_IMAGE_YB16YA16")
+            elif self.COLOR == 0x00000037:
+                elements.append("LU_IMAGE_R6G5B5")
+            elif self.COLOR == 0x00000038:
+                elements.append("SZ_R5G5B5A1")
+            elif self.COLOR == 0x00000039:
+                elements.append("SZ_R4G4B4A4")
+            elif self.COLOR == 0x0000003A:
+                elements.append("SZ_A8B8G8R8")
+            elif self.COLOR == 0x0000003B:
+                elements.append("SZ_B8G8R8A8")
+            elif self.COLOR == 0x0000003C:
+                elements.append("SZ_R8G8B8A8")
+            elif self.COLOR == 0x0000003D:
+                elements.append("LU_IMAGE_R5G5B5A1")
+            elif self.COLOR == 0x0000003E:
+                elements.append("LU_IMAGE_R4G4B4A4")
+            elif self.COLOR == 0x0000003F:
+                elements.append("LU_IMAGE_A8B8G8R8")
+            elif self.COLOR == 0x00000040:
+                elements.append("LU_IMAGE_B8G8R8A8")
+            elif self.COLOR == 0x00000041:
+                elements.append("LU_IMAGE_R8G8B8A8")
+
+            elements.append("MipmapLevels:%d" % self.MIPMAP_LEVELS)
+            elements.append(f"{self.DIMENSIONALITY}D")
+
+            elements.append("BaseSizeU:%d" % (1 << self.BASE_SIZE_U))
+            elements.append("BaseSizeV:%d" % (1 << self.BASE_SIZE_V))
+            elements.append("BaseSizeP:%d" % (1 << self.BASE_SIZE_P))
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = TextureFormat(nv_param)
+
+    return param_info + f" {fmt}"
+
+
+def _process_set_texture_control(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("SEPARATE_SPECULAR", ctypes.c_uint32, 2),
+            ("RESERVED", ctypes.c_uint32, 14),
+            ("LOCALEYE", ctypes.c_uint32, 1),
+            ("SOUT", ctypes.c_uint32, 15),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            if self.SEPARATE_SPECULAR:
+                elements.append("SeparateSpecular")
+
+            if self.LOCALEYE:
+                elements.append("LocalEye")
+
+            if self.SOUT == 0:
+                elements.append("SOut:ZeroOut")
+            elif self.SOUT == 1:
+                elements.append("SOut:Passthrough")
+            else:
+                elements.append("SOut:%d" % self.SOUT)
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_set_texture_control1(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("RESERVED", ctypes.c_uint32, 16),
+            ("IMAGE_PITCH", ctypes.c_uint32, 16),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+            elements.append("Pitch: %d" % self.IMAGE_PITCH)
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_set_texture_address(_nv_class, nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _pack_ = 1
+        _fields_ = [
+            ("U", ctypes.c_uint32, 4),
+            ("CYLWRAP_U", ctypes.c_uint32, 4),
+            ("V", ctypes.c_uint32, 4),
+            ("CYLWRAP_V", ctypes.c_uint32, 4),
+            ("P", ctypes.c_uint32, 4),
+            ("CYLWRAP_P", ctypes.c_uint32, 4),
+            ("CYLWRAP_Q", ctypes.c_uint32, 4),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            border_modes = [
+                "Unknown0",
+                "Wrap",
+                "Mirror",
+                "Clamp_Edge",
+                "Border",
+                "Clamp_OGL",
+            ]
+
+            for component in ["U", "V", "P"]:
+                border_mode = getattr(self, f"{component}")
+                if border_mode >= len(border_modes):
+                    msg = f"Failed to parse border mode {border_mode} for texture address op 0x{nv_op:x} param 0x{nv_param:x}"
+                    raise ValueError(msg)
+                cyl_wrap = getattr(self, f"CYLWRAP_{component}")
+
+                elements.append(f"{component}:{border_modes[border_mode]}")
+
+                if cyl_wrap:
+                    elements.append(f"CylWrap_{component}")
+
+            if self.CYLWRAP_Q:
+                elements.append("CylWrap_Q")
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_set_texture_control0(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _pack_ = 1
+        _fields_ = [
+            ("COLOR_KEY_OP", ctypes.c_uint32, 2),
+            ("ALPHA_KILL_ENABLE", ctypes.c_uint32, 1),
+            ("IMAGE_FIELD_ENABLE", ctypes.c_uint32, 1),
+            ("MAX_ANISO", ctypes.c_uint32, 2),
+            ("MAX_LOD_CLAMP", ctypes.c_uint32, 12),
+            ("MIN_LOD_CLAMP", ctypes.c_uint32, 12),
+            ("ENABLE", ctypes.c_uint32, 2),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            if not self.ENABLE:
+                return "{Disabled}"
+
+            elements = []
+
+            if self.COLOR_KEY_OP == 1:
+                elements.append("ColorKey:Alpha")
+            elif self.COLOR_KEY_OP == 2:
+                elements.append("ColorKey:RGBA")
+            elif self.COLOR_KEY_OP == 3:
+                elements.append("ColorKey:KILL")
+
+            if self.ALPHA_KILL_ENABLE:
+                elements.append("AlphaKillEnabled")
+
+            if self.IMAGE_FIELD_ENABLE:
+                elements.append("ImageFieldEnabled")
+
+            elements.append("MaxAniso:%d" % (1 << self.MAX_ANISO))
+            elements.append("MaxLOD:%d" % self.MAX_LOD_CLAMP)
+            elements.append("MinLOD:%d" % self.MIN_LOD_CLAMP)
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_set_texture_filter(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _pack_ = 1
+        _fields_ = [
+            ("LOD_BIAS", ctypes.c_uint32, 13),
+            ("CONVOLUTION_KERNEL", ctypes.c_uint32, 3),
+            ("MIN", ctypes.c_uint32, 8),
+            ("MAG", ctypes.c_uint32, 4),
+            ("A_SIGNED", ctypes.c_uint32, 1),
+            ("R_SIGNED", ctypes.c_uint32, 1),
+            ("G_SIGNED", ctypes.c_uint32, 1),
+            ("B_SIGNED", ctypes.c_uint32, 1),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append("LODBias:%d" % self.LOD_BIAS)
+
+            if self.CONVOLUTION_KERNEL == 1:
+                elements.append("Quincunx")
+            elif self.CONVOLUTION_KERNEL == 2:
+                elements.append("Gaussian3")
+            else:
+                elements.append("UnknownKernel:%d" % self.CONVOLUTION_KERNEL)
+
+            min_strategy = [
+                "Unknown0",
+                "BoxLOD0",
+                "TentLOD0",
+                "BoxNearestLOD",
+                "TentNearestLOD",
+                "BoxTentLOD",
+                "TentTentLOD",
+                "Convolution2dLOD0",
+            ]
+            elements.append("Min:%s" % min_strategy[self.MIN])
+
+            mag_strategy = [
+                "Unknown0",
+                "BoxLOD0",
+                "TentLOD0",
+                "Unknown3",
+                "Convolution2dLOD0",
+            ]
+            elements.append("Mag:%s" % mag_strategy[self.MAG])
+
+            if self.A_SIGNED:
+                elements.append("Signed-Alpha")
+            if self.R_SIGNED:
+                elements.append("Signed-Red")
+            if self.G_SIGNED:
+                elements.append("Signed-Green")
+            if self.B_SIGNED:
+                elements.append("Signed-Blue")
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+
+def _process_set_texture_palette(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _pack_ = 1
+        _fields_ = [
+            ("DMA", ctypes.c_uint32, 2),
+            ("LENGTH", ctypes.c_uint32, 4),
+            ("OFFSET", ctypes.c_uint32, 26),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            elements.append("DMA_%s" % ("B" if self.DMA else "A"))
+
+            palette_sizes = ["256", "128", "64", "32"]
+            elements.append(f"Length:{palette_sizes[self.LENGTH]}")
+
+            elements.append("Offset:0x%08X" % self.OFFSET)
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+def _process_set_surface_format(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+
+    class BitField(ctypes.LittleEndianStructure):
+        _fields_ = [
+            ("COLOR", ctypes.c_uint32, 4),
+            ("ZETA", ctypes.c_uint32, 4),
+            ("TYPE", ctypes.c_uint32, 4),
+            ("ANTIALIASING", ctypes.c_uint32, 4),
+            ("WIDTH", ctypes.c_uint32, 8),
+            ("HEIGHT", ctypes.c_uint32, 8),
+        ]
+
+        def __new__(cls, *args, **kwargs):
+            if args:
+                return cls.from_buffer_copy(args[0].to_bytes(4, byteorder=sys.byteorder))
+            return super().__new__()
+
+        def __str__(self):
+            elements = []
+
+            if self.COLOR == 1:
+                elements.append("LE_X1R5G5B5_Z1R5G5B5")
+            elif self.COLOR == 2:
+                elements.append("LE_X1R5G5B5_O1R5G5B5")
+            elif self.COLOR == 3:
+                elements.append("LE_R5G6B5")
+            elif self.COLOR == 4:
+                elements.append("LE_X8R8G8B8_Z8R8G8B8")
+            elif self.COLOR == 5:
+                elements.append("LE_X8R8G8B8_O8R8G8B8")
+            elif self.COLOR == 6:
+                elements.append("LE_X1A7R8G8B8_Z1A7R8G8B8")
+            elif self.COLOR == 7:
+                elements.append("LE_X1A7R8G8B8_O1A7R8G8B8")
+            elif self.COLOR == 8:
+                elements.append("LE_A8R8G8B8")
+            elif self.COLOR == 9:
+                elements.append("LE_B8")
+            elif self.COLOR == 10:
+                elements.append("LE_G8B8")
+
+            if self.ZETA == 1:
+                elements.append("Z16")
+            elif self.ZETA == 2:
+                elements.append("Z24S8")
+
+            if self.TYPE == 1:
+                elements.append("Type:Pitch")
+            elif self.TYPE == 2:
+                elements.append("Type:Swizzle")
+
+            if self.ANTIALIASING == 0:
+                elements.append("AA:Center_1")
+            elif self.ANTIALIASING == 1:
+                elements.append("AA:Center_Corner_2")
+            elif self.ANTIALIASING == 2:
+                elements.append("AA:Square_Offset_4")
+
+            elements.append("Width:%d" % (1 << self.WIDTH))
+            elements.append("Height:%d" % (1 << self.HEIGHT))
+
+            return "{%s}" % ", ".join(elements)
+
+    fmt = BitField(nv_param)
+    return param_info + f" {fmt}"
+
+def _process_set_texgen_rst(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+    setting_map = {
+        0: "DISABLE",
+        0x00008511: "NORMAL_MAP",
+        0x00008512: "REFLECTION_MAP",
+        0x00002400: "EYE_LINEAR",
+        0x00002401: "OBJECT_LINEAR",
+        0x00002402: "SPHERE_MAP",
+    }
+    setting = setting_map.get(nv_param, "<<INVALID>>")
+    return param_info + f" {setting}"
+
+
+def _process_set_texgen_q(_nv_class, _nv_op, nv_param):
+    param_info = "0x%X" % nv_param
+    setting_map = {
+        0: "DISABLE",
+        0x00002400: "EYE_LINEAR",
+        0x00002401: "OBJECT_LINEAR",
+    }
+    setting = setting_map.get(nv_param, "<<INVALID>>")
+    return param_info + f" {setting}"
+
+{% endraw %}

@@ -1,0 +1,95 @@
+[build-system]
+requires = [
+    "hatchling>=1.27.0",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "xemu-perf-renderer"
+dynamic = ["version"]
+description = 'Benchmark result renderer for xemu-perf-tester'
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["xemu", "xbox"]
+authors = [
+    { name = "Erik Abair", email = "erik.abair@bearbrains.work" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "Jinja2~=3.1.6",
+    "requests~=2.32.4",
+]
+
+[project.urls]
+Documentation = "https://github.com/abaire/nv2a-define-collator#readme"
+Issues = "https://github.com/abaire/nv2a-define-collator/issues"
+Source = "https://github.com/abaire/nv2a-define-collator"
+
+[project.scripts]
+xemu-perf-render = "nv2a_define_collator:render"
+
+[tool.hatch.version]
+path = "src/nv2a_define_collator/__about__.py"
+
+[tool.hatch.envs.types]
+type = "virtual"
+path = ".venv-mypy"
+extra-dependencies = [
+    "mypy>=1.14.1",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/nv2a_define_collator}"
+
+[tool.mypy]
+disable_error_code = ["import-untyped", "import-not-found"]
+
+[tool.coverage.run]
+source_pkgs = ["nv2a_define_collator"]
+branch = true
+parallel = true
+omit = [
+    "src/nv2a_define_collator/__about__.py",
+]
+
+[tool.coverage.paths]
+xemu-perf-renderer = ["src/nv2a_define_collator", "*/nv2a-vsh/src/nv2a_define_collator"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "README-maintainer.md"
+]
+include = [
+    "src/nv2a_define_collator/templates"
+]
+
+[tool.hatch.envs.default]
+type = "virtual"
+path = "venv"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
+
+[tool.hatch.envs.hatch-test]
+type = "virtual"
+path = "venv"
+extra-dependencies = [
+    "pytest",
+]
