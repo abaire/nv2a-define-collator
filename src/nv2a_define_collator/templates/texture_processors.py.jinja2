@@ -1,5 +1,4 @@
 {% raw %}
-
 def _process_set_texture_format(_nv_class, _nv_op, nv_param):
     param_info = "0x%X" % nv_param
 
@@ -433,6 +432,7 @@ def _process_set_texture_palette(_nv_class, _nv_op, nv_param):
     fmt = BitField(nv_param)
     return param_info + f" {fmt}"
 
+
 def _process_set_surface_format(_nv_class, _nv_op, nv_param):
     param_info = "0x%X" % nv_param
 
@@ -500,6 +500,7 @@ def _process_set_surface_format(_nv_class, _nv_op, nv_param):
     fmt = BitField(nv_param)
     return param_info + f" {fmt}"
 
+
 def _process_set_texgen_rst(_nv_class, _nv_op, nv_param):
     param_info = "0x%X" % nv_param
     setting_map = {
@@ -523,5 +524,4 @@ def _process_set_texgen_q(_nv_class, _nv_op, nv_param):
     }
     setting = setting_map.get(nv_param, "<<INVALID>>")
     return param_info + f" {setting}"
-
 {% endraw %}

@@ -1,5 +1,4 @@
 {% raw %}
-
 # See https://github.com/fgsfdsfgs/pbgl/blob/13fa676239f7de5a4189dd15a86979989adfe3fd/src/state.c#L315
 def _process_set_light_control(_nv_class, _nv_op, nv_param):
     param_info = "0x%X" % nv_param
@@ -37,6 +36,7 @@ def _process_set_light_control(_nv_class, _nv_op, nv_param):
 
     fmt = BitField(nv_param)
     return param_info + f" {fmt}"
+
 
 def _process_set_color_material(_nv_class, _nv_op, nv_param):
     param_info = "0x%X" % nv_param
@@ -118,5 +118,4 @@ def _process_set_light_enable_mask(_nv_class, _nv_op, nv_param):
 
     fmt = BitField(nv_param)
     return param_info + f" {fmt}"
-
 {% endraw %}
