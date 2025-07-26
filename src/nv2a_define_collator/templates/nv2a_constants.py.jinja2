@@ -43,7 +43,7 @@ def _generate_process_double_uint16(low, high):
 
 def _expand_processors(
         processors: dict[int, dict[int | StateArray | StructStateArray, ProcessorFunc]]
-) -> tuple[dict[tuple[int, int], ProcessorFunc], dict[tuple(int, int), str]]:
+) -> tuple[dict[tuple[int, int], ProcessorFunc], dict[tuple[int, int], str]]:
     """Flattens processor mapping into processor funcs and names."""
     flat_processors: dict[tuple[int, int], ProcessorFunc] = {}
     flat_names: dict[tuple[int, int], str] = {}
@@ -64,7 +64,7 @@ def _expand_processors(
                 base = nv_op_info.base
                 name = _SPARSE_NAME_MAP[(nv_class, base)]
                 stride = nv_op_info.stride
-                count = nv_op_info.count
+                count = nv_op_info.num_elements
                 for i in range(count):
                     _insert((nv_class, base + i * stride), processor, f"{name}[{i}]")
                 continue
@@ -75,7 +75,7 @@ def _expand_processors(
                 struct_stride = nv_op_info.struct_stride
                 struct_count = nv_op_info.struct_count
                 stride = nv_op_info.stride
-                count = nv_op_info.count
+                count = nv_op_info.num_elements
 
                 for struct in range(struct_count):
                     for i in range(count):
