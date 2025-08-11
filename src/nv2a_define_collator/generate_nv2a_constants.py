@@ -239,7 +239,7 @@ STRUCT_ARRAY_COMMANDS = {
     "NV097_SET_TEXGEN_PLANE_S": (64, 4, 4, 4),
     "NV097_SET_TEXGEN_PLANE_T": (64, 4, 4, 4),
     "NV097_SET_TEXTURE_MATRIX": (64, 4, 4, 16),
-    "NV097_SET_TEXTURE_SET_BUMP_ENV_MAT": (0x40, 4, 4, 16),
+    "NV097_SET_TEXTURE_SET_BUMP_ENV_MAT": (0x40, 4, 4, 4),
 }
 
 # The simple heuristic to attempt to differentiate bitvector values from masks fails in certain cases where a sibling
