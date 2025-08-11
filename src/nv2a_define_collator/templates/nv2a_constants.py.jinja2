@@ -49,6 +49,10 @@ def _expand_processors(
     flat_names: dict[tuple[int, int], str] = {}
 
     def _insert(key: tuple[int, int], processor: ProcessorFunc, name: str):
+        if key in flat_names:
+            msg = f"Colliding key '{key}': old name: '{flat_names[key]}' new name: '{name}'"
+            raise ValueError(msg)
+
         flat_processors[key] = processor
         flat_names[key] = name
 
