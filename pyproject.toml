@@ -9,7 +9,7 @@ name = "xemu-perf-renderer"
 dynamic = ["version"]
 description = 'Benchmark result renderer for xemu-perf-tester'
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { file = "LICENSE" }
 keywords = ["xemu", "xbox"]
 authors = [
@@ -21,7 +21,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [

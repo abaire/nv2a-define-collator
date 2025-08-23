@@ -22,6 +22,8 @@ SOURCES = [
 ]
 
 PACKED_SHORT_COMMANDS = {
+    "NV019_CONTEXT_CLIP_RECTANGLE_SET_POINT": ("X", "Y"),
+    "NV019_CONTEXT_CLIP_RECTANGLE_SET_SIZE": ("W", "H"),
     "NV062_SET_PITCH": ("Source", "Destination"),
     "NV097_ARRAY_ELEMENT16": ("V0", "V1"),
     "NV097_SET_CLEAR_RECT_HORIZONTAL": ("Min", "Max"),
@@ -515,13 +517,16 @@ class PGRAPHCommand:
         return f"Parse{camel_name}"
 
 
-PGRAPHCommandTree = dict[str, tuple[PGRAPHCommand, dict[int, tuple[PGRAPHCommand, dict[int, PGRAPHCommand]]]]]
+type PGRAPHCommandTree = dict[str, tuple[PGRAPHCommand, dict[int, tuple[PGRAPHCommand, dict[int, PGRAPHCommand]]]]]
 
 EXTRAS: PGRAPHCommandTree = {
     # https://github.com/xemu-project/xemu/issues/711
     "NV097_SET_OCCLUDE_ZSTENCIL_EN": (PGRAPHCommand("NV097_SET_OCCLUDE_ZSTENCIL_EN", "0x00001D84", 0x00001D84), {}),
     # https://github.com/xemu-project/xemu/issues/702
     "NV097_SET_SWATH_WIDTH": (PGRAPHCommand("NV097_SET_SWATH_WIDTH", "0x000009F8", 0x000009F8), {}),
+    # https://github.com/XboxDev/nxdk/blob/3b24b559124aba8fcb94fddff1d2dc9ef32de461/lib/pbkit/nv_objects.h#L653
+    "NV019_CONTEXT_CLIP_RECTANGLE_SET_POINT": (PGRAPHCommand("NV019_CONTEXT_CLIP_RECTANGLE_SET_POINT", "0x00000300", 0x00000300), {}),
+    "NV019_CONTEXT_CLIP_RECTANGLE_SET_SIZE": (PGRAPHCommand("NV019_CONTEXT_CLIP_RECTANGLE_SET_SIZE", "0x00000304", 0x00000304), {}),
 }
 
 
