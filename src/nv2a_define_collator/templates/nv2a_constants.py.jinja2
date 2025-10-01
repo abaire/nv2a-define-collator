@@ -17,8 +17,7 @@ def _process_passthrough(_nv_class, _nv_op, nv_param) -> str:
 
 def _process_float_param(_nv_class, _nv_op, nv_param) -> str:
     """Treats the param value as an IEEE float"""
-    float_val = struct.unpack("f",
-                              nv_param.to_bytes(4, byteorder=sys.byteorder))
+    float_val = struct.unpack("f", nv_param.to_bytes(4, byteorder=sys.byteorder))
     return f"0x{nv_param:08X} => {float_val[0]}"
 
 
@@ -42,7 +41,7 @@ def _generate_process_double_uint16(low, high):
 
 
 def _expand_processors(
-        processors: dict[int, dict[int | StateArray | StructStateArray, ProcessorFunc]]
+    processors: dict[int, dict[int | StateArray | StructStateArray, ProcessorFunc]],
 ) -> tuple[dict[tuple[int, int], ProcessorFunc], dict[tuple[int, int], str]]:
     """Flattens processor mapping into processor funcs and names."""
     flat_processors: dict[tuple[int, int], ProcessorFunc] = {}
@@ -94,16 +93,20 @@ def _expand_processors(
 {% endraw %}
 
 # Custom parser functions.
+
 {% for entry in PARSERS %}
 {{ entry | safe -}}
 {% endfor %}
 
-# Mapping of graphics class to commands and processors.
-_PROCESSORS, _NAME_MAP = _expand_processors({
+
+CLASS_TO_COMMAND_PROCESSOR_MAP = {
 {%- for entry in PROCESSOR_MAP %}
-  {{ entry | safe -}}
+{{ entry | safe -}}
 {%- endfor %}
-})
+}
+
+# Mapping of graphics class to commands and processors.
+_PROCESSORS, _NAME_MAP = _expand_processors(CLASS_TO_COMMAND_PROCESSOR_MAP)
 
 
 @dataclass
@@ -128,7 +131,6 @@ class CommandInfo:
         return f"{self.channel}: {class_info} -> {op_info} ({self.param_info})"
 
     def get_pretty_string(self) -> str:
-
         return f"nv2a_pgraph_method {self.pretty_suffix}"
 
     def process(self):

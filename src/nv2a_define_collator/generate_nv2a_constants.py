@@ -846,11 +846,11 @@ def _build_value_parser(
     for value in sorted(children_map):
         value_info, _ = children_map[value]
         symbolic_name = value_info.name[characters_to_remove:]
-        result.append(f'      {value}: "{symbolic_name}",')
+        result.append(f'        {value}: "{symbolic_name}",')
     result.append("    }")
     result.append("    ret = _VALUES.get(nv_param)")
     result.append("    if ret:")
-    result.append("      return ret")
+    result.append("        return ret")
     result.append('    return f"0x{nv_param:X}?"')
 
     return result
@@ -868,7 +868,7 @@ def _build_bitfield_parser(grandparent_cmd: PGRAPHCommand, children_map: dict) -
         mask_hex = f"0x{child_cmd.numeric_value:X}"
 
         result.append(f"    field_val = nv_param & {mask_hex}")
-        fallback_value = f"results.append(f'{child_short_name}:0x{{field_val:X}}')"
+        fallback_value = f'results.append(f"{child_short_name}:0x{{field_val:X}}")'
 
         if not grandchildren_map:
             result.append(f"    {fallback_value}")
@@ -881,8 +881,8 @@ def _build_bitfield_parser(grandparent_cmd: PGRAPHCommand, children_map: dict) -
                     "    }",
                     "    if field_val in field_map:",
                     "        grandchild_name = field_map[field_val]",
-                    f"        symbolic_part = grandchild_name.replace('{prefix_to_remove}', '', 1)",
-                    "        results.append(symbolic_part.replace('_', ':', 1))",
+                    f'        symbolic_part = grandchild_name.replace("{prefix_to_remove}", "", 1)',
+                    '        results.append(symbolic_part.replace("_", ":", 1))',
                     "    else:",
                     f"        {fallback_value}",
                 ]
@@ -942,6 +942,8 @@ def _generate_python_file(command_tree: PGRAPHCommandTree, env: Environment) -> 
     for template_name in templates:
         template = env.get_template(template_name)
         ret.append(template.render(template_context))
+
+    ret.append("")
 
     return "\n".join(ret)
 
