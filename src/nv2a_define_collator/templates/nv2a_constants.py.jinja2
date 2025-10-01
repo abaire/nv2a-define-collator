@@ -21,6 +21,11 @@ def _process_float_param(_nv_class, _nv_op, nv_param) -> str:
     return f"0x{nv_param:08X} => {float_val[0]}"
 
 
+def _process_x_3_fixed_point(_nv_class, _nv_op, nv_param: int) -> str:
+    """Treats the param as an x.3 fixed point value (no sign extension)."""
+    return f"0x{nv_param:08X} => {float(nv_param) / 8.0}"
+
+
 def _process_boolean_param(_nv_class, _nv_op, nv_param) -> str:
     """Treats the param value as a boolean."""
     if nv_param == 0:
@@ -106,7 +111,7 @@ CLASS_TO_COMMAND_PROCESSOR_MAP = {
 }
 
 # Mapping of graphics class to commands and processors.
-_PROCESSORS, _NAME_MAP = _expand_processors(CLASS_TO_COMMAND_PROCESSOR_MAP)
+PROCESSORS, _NAME_MAP = _expand_processors(CLASS_TO_COMMAND_PROCESSOR_MAP)
 
 
 @dataclass
@@ -135,7 +140,7 @@ class CommandInfo:
 
     def process(self):
         processor_key = (self.nv_class, self.nv_op)
-        processor = _PROCESSORS.get(processor_key)
+        processor = PROCESSORS.get(processor_key)
         if processor:
             self.param_info = processor(self.nv_class, self.nv_op, self.nv_param)
         else:
@@ -144,7 +149,7 @@ class CommandInfo:
 
 def get_command_info(channel: int, nv_class: int, nv_op: int, nv_param: int) -> CommandInfo:
     processor_key = (nv_class, nv_op)
-    if processor_key not in _PROCESSORS:
+    if processor_key not in PROCESSORS:
         return CommandInfo(channel, nv_class, nv_op, nv_param)
 
     op_name = _NAME_MAP.get(processor_key)
