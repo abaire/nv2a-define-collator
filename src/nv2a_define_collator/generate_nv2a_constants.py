@@ -9,9 +9,13 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import requests
 from jinja2 import Environment, FileSystemLoader
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -266,7 +270,7 @@ STRUCT_ARRAY_COMMANDS = {
 # Other comamnds may look like children but are not: e.g., NV097_SET_TRANSFORM_PROGRAM_LOAD and
 # NV097_SET_TRANSFORM_PROGRAM. Setting the parent to "" here suppresses the child association.
 CHILD_ASSOCIATION_OVERRIDE: dict[str, str] = {
-    "NV062_SET_COLOR_FORMAT_LE_X8R8G8B8_Z8R8G8B8": "NV062_SET_COLOR_FORMAT",
+    "NV062_SET_COLOR_FORMAT_LE_X8R8G8B8_Z8R8G8B8": "NV062_SET_COLOR_FORMAT",  # NV062_SET_COLOR_FORMAT_LE_X8R8G8B8
     "NV097_SET_CULL_FACE_ENABLE": "",
     "NV097_SET_LOGIC_OP_ENABLE": "",
     "NV097_SET_POINT_PARAMS_ENABLE": "",
@@ -277,6 +281,7 @@ CHILD_ASSOCIATION_OVERRIDE: dict[str, str] = {
     "NV097_SET_TRANSFORM_PROGRAM_CXT_WRITE_EN": "",
     "NV097_SET_TRANSFORM_PROGRAM_LOAD": "",
     "NV097_SET_TRANSFORM_PROGRAM_START": "",
+    "NV097_SET_CULL_FACE_V_FRONT_AND_BACK": "NV097_SET_CULL_FACE",  # Sibling of NV097_SET_CULL_FACE_V_FRONT
 }
 
 CUSTOM_NAMES = {
@@ -635,15 +640,28 @@ def _handle_special_case_value(pgraph_command) -> int | None:
 
 
 def _sanitize_name(command_name: str) -> list[str]:
-    """Expands special cases where value defines apply across multiple commands."""
+    """Expands special cases where value defines are shared across multiple commands."""
+
+    def share_values(value_prefix: str, commands: Iterable[str], suffix_prefix: str = "") -> list[str] | None:
+        if not command_name.startswith(value_prefix):
+            return None
+
+        suffix = suffix_prefix + command_name[len(value_prefix) :]
+        return [prefix + suffix for prefix in commands]
 
     # Stencil op values apply across the three stencil op commands but are only specified once in the header.
-    if command_name.startswith("NV097_SET_STENCIL_OP_V"):
-        suffix = command_name[22:]
-        return [
-            prefix + suffix
-            for prefix in ("NV097_SET_STENCIL_OP_FAIL", "NV097_SET_STENCIL_OP_ZFAIL", "NV097_SET_STENCIL_OP_ZPASS")
-        ]
+    ret = share_values(
+        "NV097_SET_STENCIL_OP_V",
+        ("NV097_SET_STENCIL_OP_FAIL", "NV097_SET_STENCIL_OP_ZFAIL", "NV097_SET_STENCIL_OP_ZPASS"),
+    )
+    if ret:
+        return ret
+
+    ret = share_values(
+        "NV097_SET_FRONT_POLYGON_MODE_V", ("NV097_SET_FRONT_POLYGON_MODE", "NV097_SET_BACK_POLYGON_MODE"), "_V"
+    )
+    if ret:
+        return ret
 
     # TODO: Fix spelling upstream.
     if command_name == "NV097_SET_STIPPLE_PATERN_0":
