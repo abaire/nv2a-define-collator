@@ -104,13 +104,15 @@ def _expand_processors(
 {% endfor %}
 
 
-CLASS_TO_COMMAND_PROCESSOR_MAP = {
+CLASS_TO_COMMAND_PROCESSOR_MAP: dict[int, dict[int | StateArray | StructStateArray, ProcessorFunc]] = {
 {%- for entry in PROCESSOR_MAP %}
 {{ entry | safe -}}
 {%- endfor %}
 }
 
 # Mapping of graphics class to commands and processors.
+PROCESSORS: dict[tuple[int, int], ProcessorFunc]
+_NAME_MAP: dict[tuple[int, int], str]
 PROCESSORS, _NAME_MAP = _expand_processors(CLASS_TO_COMMAND_PROCESSOR_MAP)
 
 
