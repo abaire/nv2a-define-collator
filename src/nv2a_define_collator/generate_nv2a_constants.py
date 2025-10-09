@@ -947,7 +947,7 @@ def _build_bitfield_parser(grandparent_cmd: PGRAPHCommand, children_map: dict) -
                 ]
             )
 
-    result.append("    return f'{{{', '.join(results)}}}'")
+    result.append("    return f\"{{{', '.join(results)}}}\"")
 
     return result
 
