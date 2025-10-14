@@ -136,6 +136,11 @@ FLOAT_VALUE_COMMANDS = {
     "NV097_SET_WEIGHT4F",
 }
 
+BITFIELD_VALUE_COMMANDS = {
+    "NV097_SET_ANTI_ALIASING_CONTROL",
+    "NV097_SET_FOG_COLOR",
+}
+
 CUSTOM_PROCESSOR_COMMANDS = {
     "NV097_DRAW_ARRAYS": "_process_draw_arrays",
     "NV097_SET_COLOR_MASK": "_process_color_mask",
@@ -923,10 +928,11 @@ def _build_bitfield_parser(grandparent_cmd: PGRAPHCommand, children_map: dict) -
         if child_cmd.numeric_value is None:
             continue
 
-        child_short_name = child_cmd.name[: len(prefix_to_remove)]
+        child_short_name = child_cmd.name[len(prefix_to_remove) :]
         mask_hex = f"0x{child_cmd.numeric_value:X}"
+        shift = (child_cmd.numeric_value & -child_cmd.numeric_value).bit_length() - 1
 
-        result.append(f"    field_val = nv_param & {mask_hex}")
+        result.append(f"    field_val = (nv_param & {mask_hex}) >> {shift}")
         fallback_value = f'results.append(f"{child_short_name}:0x{{field_val:X}}")'
 
         if not grandchildren_map:
@@ -972,10 +978,10 @@ def _build_parser_functions(command_tree: PGRAPHCommandTree) -> list[str]:
         result.append(f"def {grandparent_cmd.special_parser_name}(_nv_class, _nv_op, nv_param: int) -> str:")
         result.append(f'    """Parses the components of a {name} command."""')
 
-        if not has_grandchildren:
-            result.extend(_build_value_parser(grandparent_cmd, children_map))
-        else:
+        if has_grandchildren or name in BITFIELD_VALUE_COMMANDS:
             result.extend(_build_bitfield_parser(grandparent_cmd, children_map))
+        else:
+            result.extend(_build_value_parser(grandparent_cmd, children_map))
 
     return result
 
