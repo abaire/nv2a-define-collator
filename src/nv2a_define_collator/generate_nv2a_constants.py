@@ -155,6 +155,7 @@ CUSTOM_PROCESSOR_COMMANDS = {
     "NV097_SET_COMBINER_SPECULAR_FOG_CW0": "_process_combiner_specular_fog_cw0",
     "NV097_SET_COMBINER_SPECULAR_FOG_CW1": "_process_combiner_specular_fog_cw1",
     "NV097_SET_CONTROL0": "_process_set_control0",
+    "NV097_SET_DOT_RGBMAPPING": "_process_set_dot_rgbmapping",
     "NV097_SET_LIGHT_CONTROL": "_process_set_light_control",
     "NV097_SET_LIGHT_ENABLE_MASK": "_process_set_light_enable_mask",
     "NV097_SET_POINT_SIZE": "_process_x_3_fixed_point",
