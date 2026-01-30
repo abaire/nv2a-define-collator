@@ -15,6 +15,11 @@ def _process_passthrough(_nv_class, _nv_op, nv_param) -> str:
     return f"{nv_param}"
 
 
+def _passthrough_hex_param(_nv_class, _nv_op, nv_param) -> str:
+    """Returns the param value as a hex string."""
+    return f"0x{nv_param:08x}"
+
+
 def _process_float_param(_nv_class, _nv_op, nv_param) -> str:
     """Treats the param value as an IEEE float"""
     float_val = struct.unpack("f", nv_param.to_bytes(4, byteorder=sys.byteorder))

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 # ruff: noqa: T201 `print` found
+# ruff: noqa: FURB166 Use of `int` with explicit `base=16` after removing prefix
+# ruff: noqa: PERF403 Use a dictionary comprehension instead of a for-loop
 import argparse
 import hashlib
 import importlib.resources as pkg_resources
@@ -136,6 +138,16 @@ FLOAT_VALUE_COMMANDS = {
     "NV097_SET_WEIGHT2F",
     "NV097_SET_WEIGHT3F",
     "NV097_SET_WEIGHT4F",
+}
+
+HEX_VALUE_COMMANDS = {
+    "NV062_SET_OFFSET_SOURCE",
+    "NV062_SET_OFFSET_DESTIN",
+    "NV097_SET_VERTEX_DATA_ARRAY_OFFSET",
+    "NV097_SET_SURFACE_COLOR_OFFSET",
+    "NV097_SET_SURFACE_ZETA_OFFSET",
+    "NV097_SET_TEXTURE_OFFSET",
+    "NV097_SET_SEMAPHORE_OFFSET",
 }
 
 BITFIELD_VALUE_COMMANDS = {
@@ -888,6 +900,8 @@ def _build_processor_map(command_tree: PGRAPHCommandTree) -> list[str]:
                 parser = f'_generate_process_double_uint16("{low_label}", "{high_label}")'
             elif name in has_special_parser:
                 parser = first_command.special_parser_name
+            elif name in HEX_VALUE_COMMANDS:
+                parser = "_passthrough_hex_param"
             else:
                 parser = "_process_passthrough"
 
