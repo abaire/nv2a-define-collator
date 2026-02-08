@@ -175,6 +175,7 @@ CUSTOM_PROCESSOR_COMMANDS = {
     "NV097_SET_POINT_SIZE": "_process_x_3_fixed_point",
     "NV097_SET_SHADER_OTHER_STAGE_INPUT": "_process_set_other_stage_input",
     "NV097_SET_SHADER_STAGE_PROGRAM": "process_shader_stage_program",
+    "NV097_SET_STENCIL_FUNC": "_process_set_stencil_func",
     "NV097_SET_SPECULAR_FOG_FACTOR": "_process_combiner_color_factor",
     "NV097_SET_SURFACE_FORMAT": "_process_set_surface_format",
     "NV097_SET_TEXGEN_Q": "_process_set_texgen_q",
